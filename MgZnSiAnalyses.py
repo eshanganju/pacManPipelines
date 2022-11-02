@@ -21,6 +21,15 @@ numPtcl = clm.max()
 
 branchArray = np.zeros((numPtcl,2))
 
+def classifyNodes():
+	"""Code used to classify nodes as 
+			- end node
+			- branch node
+	"""
+
+	# For each 
+
+
 for ptclNo in range(1, numPtcl + 1):
 	
 	print('Checking particle ' + str(ptclNo) + '/' + str(numPtcl))	
@@ -92,18 +101,13 @@ for ptclNo in range(1, numPtcl + 1):
 
 	surfAreaPerVol = surfArea/volumeOfPtcl
 
-	# Classificatin of nodes
-		# end - 2 voxel
-		# tri - 4 voxel
-		# tetra - 5 voxel
-		# multi
+	# Classification of nodes
 
 	# Number of segments
 
 	# Length of segments
-		# 3D Dijkstra algorithm
 
-	# Tortuosity of segmentes
+	# Tortuosity of segments
 		# Straight line length vs shortest path
 
 	# Convex hull of particles
