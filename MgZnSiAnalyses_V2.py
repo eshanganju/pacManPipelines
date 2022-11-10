@@ -6,7 +6,9 @@ import numpy as np
 import tifffile as tf
 from skimage.morphology import skeletonize
 import skimage.measure
+from scipy.spatial import ConvexHull
 
+VERBOSE = True
 
 ofl="/home/eg/Desktop/EG-WateshedAnalysesAvizo/output3/"
 
@@ -16,42 +18,49 @@ clm = tf.imread(inputFile)
 
 numPtcl = clm.max()
 
-branchArray = np.zeros((numPtcl,2))
+particleData = np.zeros((numPtcl,6)) 	#Index, Volume, Surface area, NumBranches, Hull area, Hull Volume
+
 
 def classifyNodes(particleMap):
 	"""Code used to classify nodes as 
 			- end node
 			- branch node
 	"""
-
-	nodeClassifiedMap = np.zeros_like(particleMap)
-
-	for z in range(1,particleMap.shape[0]):
-		for y in range(1,particleMap.shape[1]):
-			for x in range(1,particleMap.shape[2]):
-				subVolume = 
-
+	Print('Under construction')
 
 	return nodeClassifiedMap
 
 def numberOfSegments():
 	"""
 	"""
+	Print('Under construction')
 
 
 def lengthOfSegment():
 	"""
 	"""
+	Print('Under construction')
 
 
 def tortuosityOfSegment():
 	"""
 	"""
+	Print('Under construction')
 
 
-def convexHullOfParticle():
+
+def convexHullDataOfParticle(particleMap):
+	"""Get convex hull of the particle
 	"""
-	"""
+	particleMap = particleMap//particleMap.max()
+
+	particleHull = ConvexHull(particleMap)
+
+	volume = particleHull.volume
+	area = particleHull.area
+
+	return area, volume
+
 
 
 for ptclNo in range(1, numPtcl + 1):
@@ -69,8 +78,11 @@ for ptclNo in range(1, numPtcl + 1):
 										fileName= currFileName,
 										outputDir=ofl)
 
+	ptcl = ptcl//ptcl.max()
+
 	tf.imwrite( (ofl+currFileName+'.tiff'), ptcl.astype('uint8'))
 
+	# Generate STL
 	print('\tMaking Stl')
 	Segment._generateInPlaceStlFile( ptcl, 
 										stepSize = 1, 
@@ -102,14 +114,14 @@ for ptclNo in range(1, numPtcl + 1):
 	nonZeroEDMVal = (skeletonEDM[np.nonzero(skeletonEDM)]).flatten()
 	np.savetxt(ofl+currFileName+'-edmSkeleton.csv', nonZeroEDMVal, delimiter=',')
 
-	# Get number of branches
-	print('\tGetting number of branches')
-	branchArray[ptclNo-1,0] = ptclNo
-	branchArray[ptclNo-1,1] = Segment.getNumberOfBranchesOfSkeleton(ptclSkeleton)
-	print('\tPtcl ' + str(ptclNo) + ' has ' + str(branchArray[numPtcl-1,1]) + 'branches')
+	# Getting particle volume
+	print('\tGetting particle volume')
+	particleData[ptclNo-1,0] = ptclNo
+	particleData[ptclNo-1,1] = np.sum(ptcl)
 
 	# Surface area of particles
-	vertices, faces, _, _ = skimage.measure.marching_cubes( volume=ptcl, 
+	print('\tGetting surface area of particle')
+	vertices, faces, _x, _y = skimage.measure.marching_cubes( volume=ptcl, 
 														 level=None, *, 
 														 spacing=(1.0, 1.0, 1.0),
 														 gradient_direction='descent', 
@@ -117,24 +129,19 @@ for ptclNo in range(1, numPtcl + 1):
 														 allow_degenerate=True, 
 														 method='lewiner', 
 														 mask=None)
-
-	surfArea = skimage.measure.mesh_surface_area(vertices, faces)
-
-	# Volume of particles
-	volumeOfPtcl = np.sum(ptcl)
-	surfAreaPerVol = surfArea/volumeOfPtcl
-
-	# Classification of nodes
-
-	# Number of segments
-
-	# Length of segments
-
-	# Tortuosity of segments
-		# Straight line length vs shortest path
-
-	# Convex hull of particles
-		# scipy.spatial.ConvexHull
+	particleData[ptclNo-1,2]= skimage.measure.mesh_surface_area(vertices, faces)
+	
+	# Get number of branches
+	print('\tGetting number of branches')
+	particleData[ptclNo-1,3] = Segment.getNumberOfBranchesOfSkeleton(ptclSkeleton)
+	print('\tPtcl ' + str(ptclNo) + ' has ' + str(particleData[numPtcl-1,3]) + 'branches')
 
 
-np.savetxt('MgZnSiScan1-branchNums.csv',branchArray,delimiter=',')
+	# Hull Data
+	print('\tGetting hull data')
+	hullArea, hullVolume = convexHullDataOfParticle(ptcl)
+	particleData[ptclNo-1,4] = hullArea
+	particleData[ptclNo-1,5] = hullVolume
+
+
+np.savetxt('MgZnSiScan1-Data.csv',particleData,delimiter=',')
