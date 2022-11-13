@@ -16,7 +16,7 @@ inputFile = '/home/eg/Desktop/EG-WateshedAnalysesAvizo/EG-WateshedAnalysesAvizo-
 
 clm = tf.imread(inputFile)
 
-numPtcl = clm.max()
+numPtcl = clm.max()Segment.obtainEuclidDistanceMap
 
 particleData = np.zeros((numPtcl,6)) 	#Index, Volume, Surface area, NumBranches, Hull area, Hull Volume
 
@@ -53,8 +53,9 @@ def convexHullDataOfParticle(particleMap):
 	"""Get convex hull of the particle
 	"""
 	particleMap = particleMap//particleMap.max()
-
-	particleHull = ConvexHull(particleMap)
+	particleData = np.transpose(np.where(particleMap==1))
+	
+	particleHull = ConvexHull(particleData)
 
 	volume = particleHull.volume
 	area = particleHull.area
@@ -77,8 +78,6 @@ for ptclNo in range(1, numPtcl + 1):
 										saveData=True,
 										fileName= currFileName,
 										outputDir=ofl)
-
-	ptcl = ptcl//ptcl.max()
 
 	tf.imwrite( (ofl+currFileName+'.tiff'), ptcl.astype('uint8'))
 
@@ -118,17 +117,18 @@ for ptclNo in range(1, numPtcl + 1):
 	print('\tGetting particle volume')
 	particleData[ptclNo-1,0] = ptclNo
 	particleData[ptclNo-1,1] = np.sum(ptcl)
+	print('\t\tVolumee:', str(particleData[ptclNo-1,1]))
 
 	# Surface area of particles
 	print('\tGetting surface area of particle')
-	vertices, faces, _x, _y = skimage.measure.marching_cubes( volume=ptcl, 
-														 level=None, *, 
-														 spacing=(1.0, 1.0, 1.0),
-														 gradient_direction='descent', 
-														 step_size=1, 
-														 allow_degenerate=True, 
-														 method='lewiner', 
-														 mask=None)
+	vertices, faces, _, _ = skimage.measure.marching_cubes(volume=ptcl, 
+														 		level=None, 
+														 		spacing=(1.0, 1.0, 1.0),
+																gradient_direction='descent', 
+																step_size=1, 
+																allow_degenerate=True, 
+																method='lewiner', 
+																mask=None)
 	particleData[ptclNo-1,2]= skimage.measure.mesh_surface_area(vertices, faces)
 	
 	# Get number of branches
@@ -138,6 +138,7 @@ for ptclNo in range(1, numPtcl + 1):
 
 
 	# Hull Data
+	#if particleData[ptclNo-1,3] !=0 :
 	print('\tGetting hull data')
 	hullArea, hullVolume = convexHullDataOfParticle(ptcl)
 	particleData[ptclNo-1,4] = hullArea
