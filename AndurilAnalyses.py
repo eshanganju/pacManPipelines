@@ -9,15 +9,22 @@ from pac import Segment
 from pac import Measure 
 
 
-ofl = '/home/crg/Documents/Datasets/Anduril/output/'
-sampleName = 'Sample3-Test_06'
-sampleLoc = '/home/crg/Documents/Datasets/Anduril/Sample3/Scan3-Clean-1-Bin-Test.tif'
+sampleName = 'PostAvizo_Sample3_p_h1_rr6'
+sampleLoc = '/home/crg/Documents/Datasets/Anduril/PostAvizo/S3-p-crop.tif'
+h_val = 1 
+rr_val = 0.6
 
+ofl = '/home/crg/Documents/Datasets/Anduril/PostAvizo/output/'
 binData = t.imread(sampleLoc)
 
 edm_image = Segment.obtainEuclidDistanceMap(binData)
 
-edm_peaks = Segment.obtainLocalMaximaMarkers(edm_image)
+edm_peaks = Segment.obtainLocalMaximaMarkers(	edm_image, 
+												method = 'hlocal' , 
+												h=h_val, 
+												saveImg=True, 
+												sampleName=sampleName, 
+												outputDir=ofl )
 
 segmented_image = Segment.segmentUsingWatershed(binaryMapToSeg = binData, 
 												edmMapForTopo = edm_image,
@@ -35,7 +42,7 @@ corrected_segmented_image = Segment.fixErrorsInSegmentation(labelledMapForOSCorr
 															checkForSmallParticles = True, 
 															voxelVolumeThreshold=1000,
 															radiusCheck=True, 
-															radiusRatioLimit=0.6, 
+															radiusRatioLimit=rr_val, 
 															sampleName=sampleName, 
 															saveImg=True, 
 															outputDir=ofl)
